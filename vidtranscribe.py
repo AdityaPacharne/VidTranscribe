@@ -27,10 +27,10 @@ def check_ffmpeg():
         subprocess.run(['ffmpeg', '-version'], check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         os_name = platform.system()
-        if os_name = "Linux":
+        if os_name == "Linux":
             messagebox.showinfo("Installing ffmpeg", "ffmpeg is not installed. Installing now...")
             subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg"])
-        elif os_name = "Darwin":
+        elif os_name == "Darwin":
             messagebox.showinfo("Installing ffmpeg", "ffmpeg is not installed. Installing now...")
             subprocess.check_call(["/bin/bash", "-c", "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"])
             subprocess.check_call(["brew", "install", "ffmpeg"])
