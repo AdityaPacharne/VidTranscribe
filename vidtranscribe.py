@@ -1,6 +1,5 @@
 import subprocess
 import platform
-import requests
 import os
 import shutil
 import sys
@@ -11,7 +10,7 @@ if os_name == "Linux":
     subprocess.check_call(["sudo", "apt-get", "install", "-y", "python3-tk"])
 
 def install_libraries():
-    required_libraries = ["Pillow", "transformers", "openai", "coremltools", "ane_transformers", "tk"]
+    required_libraries = ["Pillow", "transformers", "openai", "coremltools", "ane_transformers", "tk", "requests"]
     for i in required_libraries:
         subprocess.check_call([sys.executable, "-m", "pip", "install", i])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/openai/whisper.git"])
@@ -21,6 +20,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
 import tkinter.messagebox as messagebox
+import requests
 
 def check_ffmpeg():
     try:
@@ -82,7 +82,7 @@ def generate_coreml_model(model_name):
         messagebox.showerror("Error", f"Error generating Core ML model: {model_name}")
 
 def build_whisper():
-    os.chdir(WHISPER_DIR):
+    os.chdir(WHISPER_DIR)
     result = subprocess.run(["make", "clean"], check=True)
     if result.returncode != 0:
         messagebox.showerror("Error", "Error building whisper.cpp")
