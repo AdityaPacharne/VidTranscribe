@@ -19,7 +19,6 @@ install_libraries()
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
-import tkinter.messagebox as messagebox
 import requests
 
 def check_ffmpeg():
@@ -28,10 +27,8 @@ def check_ffmpeg():
     except (subprocess.CalledProcessError, FileNotFoundError):
         os_name = platform.system()
         if os_name == "Linux":
-            messagebox.showinfo("Installing ffmpeg", "ffmpeg is not installed. Installing now...")
             subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg"])
         elif os_name == "Darwin":
-            messagebox.showinfo("Installing ffmpeg", "ffmpeg is not installed. Installing now...")
             subprocess.check_call(["/bin/bash", "-c", "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"])
             subprocess.check_call(["brew", "install", "ffmpeg"])
         elif os_name == "Windows":
@@ -69,14 +66,12 @@ def browse_file():
 
 def download_model(model_name):
     model_download_script = os.path.join(WHISPER_DIR, "models", "download-ggml-model.sh")
-    messagebox.showinfo("Downloading Model")
     result = subprocess.run(["bash", model_download_script, model_name], check=True)
     if result.returncode != 0:
         messagebox.showerror("Error", f"Error downloading model: {model_name}")
 
 def generate_coreml_model(model_name):
     model_coreml_script = os.path.join(WHISPER_DIR, "models", "generate-coreml-model.sh")
-    messagebox.showinfo("Generating Core ML model")
     result = subprocess.run(["bash", model_coreml_script, model_name], check=True)
     if result.returncode != 0:
         messagebox.showerror("Error", f"Error generating Core ML model: {model_name}")
