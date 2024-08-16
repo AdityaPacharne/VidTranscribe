@@ -29,9 +29,10 @@ def install_libraries():
 
 def install_ffmpeg():
     if os_name == "Linux":
-        subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg", "ccache"])
+        subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg", "ccache", "vlc"])
     elif os_name == "Darwin":
         subprocess.check_call(["brew", "install", "ffmpeg", "ccache"])
+        subprocess.check_call(["brew", "install", "--cask", "vlc"])
     elif os_name == "Windows":
         messagebox.showwarning("Manual Installation Required", "Please download and install ffmpeg manually from https://www.gyan.dev/ffmpeg/builds/")
         sys.exit(1)
