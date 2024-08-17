@@ -54,7 +54,7 @@ Here you can select your preferred model from the given options
 
 ## Demonstration
 
-[![Demonstration video](images/thumbnail.jpg)](images/Demonstration_video.mp4)
+[![Demonstration video](images/thumbnail.png)](images/Demonstration_video.mp4)
 
 ## Available Models
 
