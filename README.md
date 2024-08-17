@@ -54,7 +54,7 @@ Here you can select your preferred model from the given options
 
 ## Demonstration
 
-https://github.com/user-attachments/assets/28f6cef9-3cc0-4d26-9320-451399c1e27e
+https://github.com/user-attachments/assets/bd6ef9cc-ecea-4412-89ec-9106401063e1
 
 ## Available Models
 
