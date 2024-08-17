@@ -1,6 +1,6 @@
 # VidTranscribe
 
-![Logo of VidTranscribe](https://github.com/AdityaPacharne/VidTranscribe/images/01.png)
+![Logo of VidTranscribe](images/01.png)
 
 VidTranscribe is cross-platform tool that desigened to transcribe video or audio files into text effortlessly.
 VidTranscribe utilizes [whisper.cpp](https://github.com/ggerganov/whisper.cpp), a library primarily written in C/C++ that enables blazing fast🔥🔥🔥 text transcription. 
