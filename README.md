@@ -49,8 +49,14 @@ python vidtranscribe.py
 ```
 
 Once the required libraries and packages are succesfully installed you will see the GUI of our application
-![Screenshot of our GUI](https://github.com/AdityaPacharne/VidTranscribe/images/02.jpeg)
+![Screenshot of our GUI](https://github.com/AdityaPacharne/VidTranscribe/images/02.png)
 Here you can select your preferred model from the given options
+
+## Demonstration
+
+[![Demonstration video](images/thumbnail.jpg)](images/Demonstration_video.mp4)
+
+## Available Models
 
 |  Size  | Parameters | Required VRAM | Relative speed |
 |:------:|:----------:|:-------------:|:--------------:|
