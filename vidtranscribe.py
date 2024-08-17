@@ -83,7 +83,8 @@ def browse_file():
 
     if filepath:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_name = model_var.get()
+        short_name = model_var.get()
+        model_name = f"{short_name}.en"
         model_path = os.path.join(WHISPER_DIR, "models", f"ggml-{model_name}.bin")
 
         if not os.path.exists(model_path):
@@ -149,25 +150,52 @@ def play_video_with_subtitles(video_path, subtitles_path):
         messagebox.showerror("Error", str(e))
 
 if __name__ == "__main__":
-    models = ['tiny.en', 'base.en', 'small.en', 'medium.en', 'large.en']
 
     root = tk.Tk()
-    window_width = 800
+    root.title("VidTranscribe")
+    window_width = 1000
     window_height = 600
     root.geometry(f"{window_width}x{window_height}")
 
-    image = Image.open(os.path.join(BASE_DIR, "image.jpg"))
-    photo = ImageTk.PhotoImage(image)
-    background_label = tk.Label(root, image=photo)
+    background_image = Image.open("images/background.jpg")
+    background_image = background_image.resize((window_width, window_height))
+    background_photo = ImageTk.PhotoImage(background_image)
+
+    background_label = tk.Label(root, image=background_photo)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    model_var = tk.StringVar(value=models[0])
-    model_label = tk.Label(root, text="Select Model:")
-    model_label.place(relx=0.5, rely=0.5, anchor='center', y=-40)
-    model_dropdown = ttk.Combobox(root, textvariable=model_var, values=models, state='readonly')
-    model_dropdown.place(relx=0.5, rely=0.5, anchor='center', y=-20)
+    dropdown_image = Image.open("images/dropdown.jpg")
+    dropdown_image = dropdown_image.resize((260, 60))
+    dropdown_photo = ImageTk.PhotoImage(dropdown_image)
 
-    browse_button = tk.Button(root, text="Browse", command=browse_file)
-    browse_button.place(relx=0.5, rely=0.7, anchor='center')
+    browse_image = Image.open("images/browse.jpg")
+    browse_image = browse_image.resize((150, 40))
+    browse_photo = ImageTk.PhotoImage(browse_image)
+
+    model_label = tk.Label(root, image=dropdown_photo, bd=0)
+    model_label.place(relx=0.252, rely=0.4, anchor='center', y=-40)
+
+    radio_frame = tk.Frame(root, bg="white", bd=0)
+    radio_frame.place(relx=0.2, rely=0.57, anchor='center', y=-20)
+
+    font_style = ('Courier', 23, 'bold')
+    text_color = 'black'
+
+    models = ['tiny', 'base', 'small', 'medium', 'large']
+    model_var = tk.StringVar(value=models[0])
+
+    for model in models:
+        tk.Radiobutton(
+            radio_frame,
+            text=model,
+            variable=model_var,
+            value=model,
+            bg="white",
+            fg=text_color,
+            font=font_style,
+        ).pack(anchor='w')
+
+    browse_button = tk.Button(root, image=browse_photo, command=browse_file, bd=0)
+    browse_button.place(relx=0.21, rely=0.73, anchor='center')
 
     root.mainloop()
