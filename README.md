@@ -49,7 +49,7 @@ python vidtranscribe.py
 ```
 
 Once the required libraries and packages are succesfully installed you will see the GUI of our application
-![Screenshot of our GUI](https://github.com/AdityaPacharne/VidTranscribe/images/02.png)
+![Screenshot of our GUI](images/02.png)
 Here you can select your preferred model from the given options
 
 ## Demonstration
