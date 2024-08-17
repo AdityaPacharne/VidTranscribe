@@ -54,7 +54,7 @@ Here you can select your preferred model from the given options
 
 ## Demonstration
 
-[![Demonstration video](images/thumbnail.png)](images/Demonstration_video.mp4)
+https://github.com/AdityaPacharne/VidTranscribe/blob/main/images/Demonstration_video.mp4
 
 ## Available Models
 
