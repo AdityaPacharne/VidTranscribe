@@ -1,29 +1,20 @@
-# Importing packages that are already installed
 import subprocess
 import platform
 import os
 import sys
 from datetime import datetime
 
-# Checking type of OS
 os_name = platform.system()
 architecture_name = os.uname().machine
 
-# Created address variables
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WHISPER_DIR = os.path.join(BASE_DIR, "whisper.cpp")
 TESTS_DIR = os.path.join(BASE_DIR, "tests")
 os.makedirs(TESTS_DIR, exist_ok=True)
 
-# Function to install libraries
 def install_libraries():
-    base_libraries = ["Pillow", "numpy==1.23.5", "torch==2.2.0", "transformers", "openai", "tk", "requests"]
-    macos_arm_libraries = ["coremltools", "ane_transformers"]
-    if os_name == "Darwin" and "arm" in architecture_name:
-        required_libraries = base_libraries + macos_arm_libraries
-    else:
-        required_libraries = base_libraries
-    subprocess.check_call([sys.executable, "-m", "pip", "install", *required_libraries])
+    base_libraries = ["Pillow", "numpy==1.23.5", "torch==2.2.0", "transformers", "openai", "tk", "requests", "bert-extractive-summarizer"]
+    subprocess.check_call([sys.executable, "-m", "pip", "install", *base_libraries])
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/openai/whisper.git"])
     except subprocess.CalledProcessError:
@@ -34,26 +25,12 @@ install_libraries()
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
+from summarizer import Summarizer,TransformerSummarizer
 
-# Function to install packages
 def install_packages():
     if os_name == "Linux":
         subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg", "ccache", "vlc"])
     elif os_name == "Darwin":
-        # Checks if Homebrew is installed, if not install it
-        try:
-            subprocess.check_call(["brew", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print("Homebrew is already installed.")
-        except subprocess.CalledProcessError:
-            print("Homebrew not found. Installing...")
-            subprocess.check_call(
-                ["/bin/bash", "-c", "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"]
-            )
-        except FileNotFoundError:
-            print("Homebrew not found. Installing...")
-            subprocess.check_call(
-                ["/bin/bash", "-c", "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"]
-            )
         subprocess.check_call(["brew", "install", "ffmpeg", "ccache"])
         # subprocess.check_call(["brew", "install", "--cask", "vlc"])
     elif os_name == "Windows":
@@ -61,7 +38,6 @@ def install_packages():
         sys.exit(1)
 install_packages()
 
-# Clones the whisper.cpp github repo
 def clone_whisper():
     if not os.path.exists(WHISPER_DIR):
         subprocess.run(["git", "clone", "https://github.com/ggerganov/whisper.cpp.git", WHISPER_DIR], check=True)
@@ -92,30 +68,19 @@ def browse_file():
 
         env = os.environ.copy()
 
-        if sys.platform == "darwin" and "arm" in architecture_name:
-            if not os.path.exists(os.path.join(WHISPER_DIR, "models", f"coreml-{model_name}.mlmodel")):
-                generate_coreml_model(model_name)
-                os.chdir(WHISPER_DIR)
-                build_whisper()
-                subprocess.run(['make', 'clean'], env=env, check=True)
-                env['WHISPER_COREML'] = '1'
-                subprocess.run(['make', '-j'], env=env, check=True)
-
-        else:
-            build_whisper()
-            subprocess.run(['make'], env=env, check=True)
+        build_whisper()
+        subprocess.run(['make'], env=env, check=True)
 
         convert_to_wav(filepath, timestamp)
         extract_text(timestamp, model_name)
         play_video_with_subtitles(filepath, os.path.join(TESTS_DIR, f"{timestamp}.wav.srt"))
+        combined_text = extract_combined_text_from_srt(f"{timestamp}.wav.srt")
+        summarize_text(combined_text, timestamp)
+
 
 def download_model(model_name):
     model_download_script = os.path.join(WHISPER_DIR, "models", "download-ggml-model.sh")
     subprocess.run(["bash", model_download_script, model_name], check=True)
-
-def generate_coreml_model(model_name):
-    model_coreml_script = os.path.join(WHISPER_DIR, "models", "generate-coreml-model.sh")
-    subprocess.run(["bash", model_coreml_script, model_name], check=True)
 
 def convert_to_wav(filepath, timestamp):
     try:
@@ -148,6 +113,33 @@ def play_video_with_subtitles(video_path, subtitles_path):
         messagebox.showerror("Error", f"Error playing video with subtitles: {e}")
     except EnvironmentError as e:
         messagebox.showerror("Error", str(e))
+
+def extract_combined_text_from_srt(file_path):
+    combined_text = ''
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+      
+    content = re.sub(r'\d+\s+\d{2}:\d{2}:\d{2},\d{3}\s-->\s\d{2}:\d{2}:\d{2},\d{3}', '', content)
+    lines = content.strip().split('\n')
+  
+    for line in lines:
+        line = line.strip()
+        if line:
+            combined_text += ' ' + line
+
+    combined_text = combined_text.strip()
+    return combined_text
+
+def summarize_text(combined_text, timestamp, min_length=60):
+    bert_model = Summarizer()
+    bert_summary = ''.join(bert_model(combined_text, min_length=min_length))
+    
+    summary_file_path = os.path.join(SUMMARY_DIR, f"{timestamp}.txt")
+    with open(summary_file_path, 'w') as summary_file:
+        summary_file.write(bert_summary)
+    
+    messagebox.showinfo("Summary Saved", f"Summarized file saved in {SUMMARY_DIR} with the name {timestamp}.txt")
 
 if __name__ == "__main__":
 
