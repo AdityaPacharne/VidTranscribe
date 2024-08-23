@@ -3,9 +3,9 @@ import platform
 import os
 import sys
 from datetime import datetime
+import re
 
 os_name = platform.system()
-architecture_name = os.uname().machine
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WHISPER_DIR = os.path.join(BASE_DIR, "whisper.cpp")
@@ -13,7 +13,7 @@ TESTS_DIR = os.path.join(BASE_DIR, "tests")
 os.makedirs(TESTS_DIR, exist_ok=True)
 
 def install_libraries():
-    base_libraries = ["Pillow", "numpy==1.23.5", "torch==2.2.0", "transformers", "openai", "tk", "requests", "bert-extractive-summarizer"]
+    base_libraries = ["Pillow", "numpy==1.23.5", "torch==2.2.0", "transformers", "openai", "tk", "requests"]
     subprocess.check_call([sys.executable, "-m", "pip", "install", *base_libraries])
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/openai/whisper.git"])
@@ -25,14 +25,16 @@ install_libraries()
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
-from summarizer import Summarizer,TransformerSummarizer
+from transformers import BartTokenizer, BartForConditionalGeneration
+
+tokenizer = BartTokenizer.from_pretrained('sshleifer/distilbart-cnn-12-6')
+model = BartForConditionalGeneration.from_pretrained('sshleifer/distilbart-cnn-12-6')
 
 def install_packages():
     if os_name == "Linux":
         subprocess.check_call(["sudo", "apt-get", "install", "-y", "ffmpeg", "ccache", "vlc"])
     elif os_name == "Darwin":
         subprocess.check_call(["brew", "install", "ffmpeg", "ccache"])
-        # subprocess.check_call(["brew", "install", "--cask", "vlc"])
     elif os_name == "Windows":
         messagebox.showwarning("Manual Installation Required", "Please download and install VLC and ffmpeg manually from VLC Official site and https://www.gyan.dev/ffmpeg/builds/")
         sys.exit(1)
@@ -71,11 +73,23 @@ def browse_file():
         build_whisper()
         subprocess.run(['make'], env=env, check=True)
 
+        temp_srt_file = os.path.join(TESTS_DIR, f"{timestamp}/{timestamp}.wav.srt")
+        temp_timestamp_dir = os.path.join(TESTS_DIR, f"{timestamp}")
+
         convert_to_wav(filepath, timestamp)
         extract_text(timestamp, model_name)
-        play_video_with_subtitles(filepath, os.path.join(TESTS_DIR, f"{timestamp}.wav.srt"))
-        combined_text = extract_combined_text_from_srt(f"{timestamp}.wav.srt")
-        summarize_text(combined_text, timestamp)
+        play_video_with_subtitles(filepath, temp_srt_file)
+
+        combined_text = extract_combined_text_from_srt(temp_srt_file)
+
+        inputs = tokenizer(combined_text, return_tensors='pt', max_length=1024, truncation=True)
+        summary_ids = model.generate(inputs['input_ids'], max_length=150, min_length=40, length_penalty=2.0, num_beams=4, early_stopping=True)
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+
+        os.chdir(temp_timestamp_dir)
+        with open("summary.txt", 'w', encoding='utf-8') as file:
+            content = file.write(summary)
+        subprocess.check_call(["open", "."])
 
 
 def download_model(model_name):
@@ -84,7 +98,9 @@ def download_model(model_name):
 
 def convert_to_wav(filepath, timestamp):
     try:
-        output_path = os.path.join(TESTS_DIR, f'{timestamp}.wav')
+        os.chdir(TESTS_DIR)
+        os.makedirs(f'{timestamp}')
+        output_path = os.path.join(TESTS_DIR, f'{timestamp}/{timestamp}.wav')
         subprocess.run(["ffmpeg", "-i", filepath, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", output_path], check=True)
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Error", f"Error converting to WAV: {e}")
@@ -95,8 +111,8 @@ def extract_text(timestamp, model_name):
         messagebox.showerror("Error", f"Model file not found: {model_path}")
         return
     try:
-        result = subprocess.run([os.path.join(WHISPER_DIR, "main"), "-m", model_path, "-f", os.path.join(TESTS_DIR, f"{timestamp}.wav"), "-osrt"], capture_output=True, text=True, check=True)
-        with open(os.path.join(TESTS_DIR, f"{timestamp}.srt"), 'w') as output_file:
+        result = subprocess.run([os.path.join(WHISPER_DIR, "main"), "-m", model_path, "-f", os.path.join(TESTS_DIR, f"{timestamp}/{timestamp}.wav"), "-osrt"], capture_output=True, text=True, check=True)
+        with open(os.path.join(TESTS_DIR, f"{timestamp}/{timestamp}.srt"), 'w') as output_file:
             output_file.write(result.stdout)
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Error", f"Error extracting text: {e}")
@@ -131,16 +147,6 @@ def extract_combined_text_from_srt(file_path):
     combined_text = combined_text.strip()
     return combined_text
 
-def summarize_text(combined_text, timestamp, min_length=60):
-    bert_model = Summarizer()
-    bert_summary = ''.join(bert_model(combined_text, min_length=min_length))
-    
-    summary_file_path = os.path.join(SUMMARY_DIR, f"{timestamp}.txt")
-    with open(summary_file_path, 'w') as summary_file:
-        summary_file.write(bert_summary)
-    
-    messagebox.showinfo("Summary Saved", f"Summarized file saved in {SUMMARY_DIR} with the name {timestamp}.txt")
-
 if __name__ == "__main__":
 
     root = tk.Tk()
@@ -166,7 +172,7 @@ if __name__ == "__main__":
 
     model_label = tk.Label(root, image=dropdown_photo, bd=0)
     model_label.place(relx=0.252, rely=0.4, anchor='center', y=-40)
-
+    
     radio_frame = tk.Frame(root, bg="white", bd=0)
     radio_frame.place(relx=0.2, rely=0.57, anchor='center', y=-20)
 
@@ -176,12 +182,12 @@ if __name__ == "__main__":
     models = ['tiny', 'base', 'small', 'medium', 'large']
     model_var = tk.StringVar(value=models[0])
 
-    for model in models:
+    for model_name in models:  # Renamed 'model' to 'model_name'
         tk.Radiobutton(
             radio_frame,
-            text=model,
+            text=model_name,
             variable=model_var,
-            value=model,
+            value=model_name,
             bg="white",
             fg=text_color,
             font=font_style,
