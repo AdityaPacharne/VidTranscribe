@@ -11,7 +11,7 @@ VidTranscribe utilizes [whisper.cpp](https://github.com/ggerganov/whisper.cpp), 
 - User is provided a GUI to select the audio or video file for transcription
 - Faster transcription for Apple machine with ARM architecture
 - After transcription the Video file is played automatically along with subtitles
-- (Upcoming) User will be provided summarized text which can be used as short notes
+- User will be provided transcribed and summarized text which can be used as short notes
 
 ## Tech
 
@@ -54,7 +54,7 @@ Here you can select your preferred model from the given options
 
 ## Demonstration
 
-https://github.com/user-attachments/assets/bd6ef9cc-ecea-4412-89ec-9106401063e1
+https://github.com/user-attachments/assets/c5d8744e-d3cd-4862-aaa5-e2b8da71e173
 
 ## Available Models
 
@@ -72,4 +72,7 @@ Larger the model, Lower the Speed, Higher the Accuracy.
 Then you can click on the Browse button and browse your directories and select the video file that you want to transcribe.
 
 Once you have submitted your desired video file, you can sit back and relax.
-VLC media player will open automatically with your selected video along with subtitles, you can find transcribed text in tests directory with date and time as the name of text srt file.
+
+VLC media player will open automatically with your selected video along with subtitles
+
+Then, your file manager will pop up with transcription.txt and summary.txt files appearing on it.
