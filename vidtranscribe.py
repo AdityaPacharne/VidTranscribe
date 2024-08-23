@@ -80,13 +80,15 @@ def browse_file():
         extract_text(timestamp, model_name)
         play_video_with_subtitles(filepath, temp_srt_file)
 
+        os.chdir(temp_timestamp_dir)
         combined_text = extract_combined_text_from_srt(temp_srt_file)
+        with open("transcription.txt", "w", encoding="utf-8") as file:
+            content = file.write(combined_text)
 
         inputs = tokenizer(combined_text, return_tensors='pt', max_length=1024, truncation=True)
         summary_ids = model.generate(inputs['input_ids'], max_length=150, min_length=40, length_penalty=2.0, num_beams=4, early_stopping=True)
         summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
-        os.chdir(temp_timestamp_dir)
         with open("summary.txt", 'w', encoding='utf-8') as file:
             content = file.write(summary)
         if os_name == "Darwin":
