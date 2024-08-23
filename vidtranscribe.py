@@ -89,7 +89,12 @@ def browse_file():
         os.chdir(temp_timestamp_dir)
         with open("summary.txt", 'w', encoding='utf-8') as file:
             content = file.write(summary)
-        subprocess.check_call(["open", "."])
+        if os_name == "Darwin":
+            subprocess.check_call(["open", "."])
+        else if os_name == "Linux":
+            subprocess.check_call(["xdg-open", "."])
+        else:
+            messagebox.showwarning("Sorry, couldn't open file manager :(")
 
 
 def download_model(model_name):
