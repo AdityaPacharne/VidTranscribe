@@ -91,7 +91,7 @@ def browse_file():
             content = file.write(summary)
         if os_name == "Darwin":
             subprocess.check_call(["open", "."])
-        else if os_name == "Linux":
+        elif os_name == "Linux":
             subprocess.check_call(["xdg-open", "."])
         else:
             messagebox.showwarning("Sorry, couldn't open file manager :(")
